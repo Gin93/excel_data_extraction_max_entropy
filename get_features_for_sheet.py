@@ -25,8 +25,9 @@ class Sheet:
         self.cols = self.sheet.ncols
         self.merged = self.sheet.merged_cells
         self.features = [] 
-        self.neighbors = ['up','down','left','right','up2','down2','left2','right2','upl','upr','downl','downr']
-        
+#        self.neighbors = ['up','down','left','right','up2','down2','left2','right2','upl','upr','downl','downr']
+        self.neighbors = ['up','down','left','right','up2','down2','left2','right2']
+       
         
     def filling(self):
         '''
