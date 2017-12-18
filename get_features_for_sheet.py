@@ -39,15 +39,15 @@ class Sheet:
     def selflens(self,data):
         l = len(str(data))
         if l <=3:
-            return 'short'
+            return 'datashort'
         elif l <= 6:
-            return 'normallen'
+            return 'datanormallen'
         elif l <= 9:
-            return 'long'
+            return 'datalong'
         elif l <= 15:
-            return 'verylong'
+            return 'dataverylong'
         else:
-            return 'extremelylong'
+            return 'dataextremelylong'
     
     def valid(self,x,y,rows,cols): # 可以优化
         if x < 0 or y < 0 or x > rows-1 or y > cols-1: 
@@ -73,9 +73,9 @@ class Sheet:
 #                    m_type = 'huge'
                     
                 if r_s == 1 and (c_s == 2 or c_s == 3):
-                    m_type = 'thin'
-                elif c_s == 1 and (r_s == 2 or r_s == 3):
                     m_type = 'shortlong'
+                elif c_s == 1 and (r_s == 2 or r_s == 3):
+                    m_type = 'thin'
                 elif c_s - r_s >= 5:
                     m_type = 'verylong'                    
                 elif space <= 12:
@@ -246,18 +246,20 @@ class Sheet:
                 f5 = merged_type
                 f6 = merged_pos
                 f4 = self.lens(center_data,merged_data)  # 对于合并过的单元格，是比较有数据的那个单元格的数据与中心数据
+                f7 = self.selflens(merged_data)
             else:  #单元格没有合并过
                 f2 = 'single'
                 f3 = self.cell_type(data)
                 f5 = 'singletype'
                 f6 = 'singlepos'
                 f4 = self.lens(center_data,data) #对于非合并的，操作自己与中心
+                f7 = self.selflens(data)
             
         else:
-            f1 = f2 = f3 = f4 = f5 = f6 ='invalid'
-            
+            f1 = f2 = f3 = f4 = f5 = f6 = f7 = 'invalid'
+        
         ls = location
-        return [ls + f1, ls + f2, ls + f3, ls + f4 ,ls + f5, ls + f6 ]   
+        return [ls + f1, ls + f2, ls + f3, ls + f4 ,ls + f5, ls + f6 ,ls + f7]   
     
     '''
     def get_lens_features(self,f1,f2,location):
