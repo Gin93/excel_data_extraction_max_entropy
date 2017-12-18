@@ -1,0 +1,115 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Dec 14 10:07:29 2017
+
+@author: cisdi
+"""
+
+
+import pandas as pd
+import numpy as np
+import xlwt
+import time
+import math
+import random
+#from otherfunctions import * 
+from collections import defaultdict
+
+from sklearn.cross_validation import train_test_split
+from sklearn.metrics import accuracy_score
+from get_features_for_sheet import *
+import os 
+from training_max_model import MaxEnt
+import time
+
+def dirlist(path, allfile):  
+    '''
+    dirlist("/home/yuan/testdir", [])   
+    输入路径 (string)
+    输出该目录下所有文件的路径 (list)
+    '''
+    filelist =  os.listdir(path)  
+
+    for filename in filelist:  
+        filepath = os.path.join(path, filename)  
+        if os.path.isdir(filepath):  
+            dirlist(filepath, allfile)  
+        else:  
+            allfile.append(filepath)  
+    return allfile
+
+
+def rebuild_features(features):
+    '''
+    将原feature的（a0,a1,a2,a3,a4,...）
+    变成 (0_a0,1_a1,2_a2,3_a3,4_a4,...)形式
+    '''
+    new_features = []
+    for feature in features:
+        new_feature = []
+        for i, f in enumerate(feature):
+            new_feature.append(str(i) + '_' + str(f))
+        new_features.append(new_feature)
+    return new_features
+
+
+def rebuild_features1(features):
+    new_feature = []
+    for i , f in enumerate(features):
+        new_feature.append(str(i) + '_' + str(f))
+    return new_feature
+
+
+if __name__ == "__main__":
+    
+    model_path = "./training_results.txt"
+    time1 = time.time()
+    
+    met = MaxEnt()
+    raw_data = pd.read_csv('features.csv', header=0)
+    data = raw_data.values
+    imgs = data[0::, 1::]
+    labels = data[::, 0]
+    # 选取 2/3 数据作为训练集， 1/3 数据作为测试集
+    train_features, test_features, train_labels, test_labels = train_test_split(
+        imgs, labels, test_size=0.05, random_state=23323)
+    train_features = rebuild_features(train_features)
+    test_features = rebuild_features(test_features)
+
+
+    
+    met.get_model(model_path,train_features, train_labels)
+    
+    time2 = time.time()
+    
+    print ('loading model cost', time2 - time1, ' second', '\n')
+    
+    all_files = dirlist('C:/Users/cisdi/Desktop/test_for_max1',[])#获取文件夹下所有文件的路径
+    for files in all_files:
+
+        s = Sheet(files)
+        f_map = s.get_features_map()
+        results = {}
+        for i in f_map:
+            if f_map[i][0] == 'null':
+                
+                result = 0
+            else:
+                result = met.predict1(rebuild_features1(f_map[i]))
+            results [i] = result
+#        
+        
+#        for i in f_map:
+#            result = met.predict1(rebuild_features1(f_map[i]))
+#            results [i] = result
+        
+        
+        writer = xlwt.Workbook()
+        table = writer.add_sheet('name')
+        for i in results:
+            table.write(i[0],i[1],results[i])
+        name = files.split('\\')[1]
+        writer.save('C:/Users/cisdi/Desktop/output_for_max/'+ name +'_results.xls')
+        
+    time3 = time.time()
+    print ('predicting cost ', time3 - time2, ' second', '\n')
