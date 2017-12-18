@@ -260,7 +260,7 @@ class Sheet:
             f1 = f2 = f3 = f4 = f5 = f6 = f7 = 'invalid'
         
         ls = location
-        return [ls + f1, ls + f2, ls + f3, ls + f4 ,ls + f5, ls + f6 ,ls + f7]   
+        return [ls + f1, ls + f2, ls + f3 ,ls + f5, ls + f6 ,ls + f7]   #删除了f4
     
     '''
     def get_lens_features(self,f1,f2,location):
