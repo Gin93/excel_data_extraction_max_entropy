@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Tue Dec 19 08:43:59 2017
+
+@author: cisdi
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Thu Dec 14 10:07:29 2017
 
 @author: cisdi
@@ -21,7 +28,34 @@ from get_features_for_sheet import *
 import os 
 from training_max_model import MaxEnt
 import time
+from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt
+import pandas
 
+
+
+
+def confusion_matrix_plot_matplotlib(y_truth, y_predict, cmap=plt.cm.Blues):
+    """Matplotlib绘制混淆矩阵图
+    parameters
+    ----------
+        y_truth: 真实的y的值, 1d array
+        y_predict: 预测的y的值, 1d array
+        cmap: 画混淆矩阵图的配色风格, 使用cm.Blues
+    """
+    cm = confusion_matrix(y_truth, y_predict)
+    plt.matshow(cm, cmap=cmap)  # 混淆矩阵图
+    plt.colorbar()  # 颜色标签
+     
+    for x in range(len(cm)):  # 数据标签
+        for y in range(len(cm)):
+            plt.annotate(cm[x, y], xy=(x, y), horizontalalignment='center', verticalalignment='center')
+     
+    plt.xlabel('True label')  # 坐标轴标签
+    plt.ylabel('Predicted label')  # 坐标轴标签
+    plt.show()  # 显示作图结果
+    
+    
 def dirlist(path, allfile):  
     '''
     dirlist("/home/yuan/testdir", [])   
@@ -106,22 +140,58 @@ def rule1(d,merged,name):
                         d[r,c] = str(d[r,c]) + '-->' + str(mid)  
             
             else:
-                
+                for r in range(x1,x2):
+                    for c in range(y1,y2):
+                        d[r,c] = str(d[r,c]) + '-->' + str(d[x1,y1])  
             
-                print(name,'::::::::',x1,x2,y1,y2)
+                #print(name,'::::::::',x1,x2,y1,y2)
 
     return d
         
+def read_csv(csv_file_name):
+    '''
+    input: csv_file_name
+    ouput: excel_filename, x1,y1,x2,y2,label 
+    '''
+    o = []
+    with open (csv_file_name) as f:
+        f_csv = csv.reader(f)
+        for row in f_csv:
+            o.append(row)  
+    return o 
 
-    
+
+
+
+def checking (csv_data,file_name,r,l,result):
+
+    for file,x1,y1,x2,y2,label in csv_data: 
+
+        if file == os.path.basename(file_name):  # 这样只检查标记过的 未标记过的也不会报错
+            if r+1 >= int(x1) and r+1<= int(x2) and l+1 >= int(y1) and l+1 <= int(y2):
+                if str(result)[-1] != '0':
+                    return (str(result)[-1], str(label))
+                
+                    if str(result)[-1] != str(label):
+                        print(file_name)
+                        print((r,l))
+                        print('result is' , result, 'but shuold be', label)
+
+def checking1 (csv_data,file_name,r,l,result):
+
+    for file,x1,y1,x2,y2,label in csv_data: 
+
+        if file == os.path.basename(file_name):  # 这样只检查标记过的 未标记过的也不会报错
+            if r+1 >= int(x1) and r+1<= int(x2) and l+1 >= int(y1) and l+1 <= int(y2):
+                if str(result)[-1] != '0':
+                
+                    if str(result)[-1] != str(label):
+                        print(file_name)
+                        print((r,l))
+                        print('result is' , result, 'but shuold be', label)
+                        return (False,str(result),str(label))
+    return(True,str(result),str(label))
         
-
-
-    
-            
-            
-    
-
 if __name__ == "__main__":
     
     model_path = "./training_results.txt"
@@ -146,7 +216,12 @@ if __name__ == "__main__":
     
     print ('loading model cost', time2 - time1, ' second', '\n')
     
-    all_files = dirlist('C:/Users/cisdi/Desktop/test_for_max2',[])#获取文件夹下所有文件的路径
+    
+    
+    actual = []
+    predict = []
+    classfication_results = []
+    all_files = dirlist('C:/Users/cisdi/Desktop/test_for_max',[])#获取文件夹下所有文件的路径
     for files in all_files:
 
         s = Sheet(files)
@@ -164,13 +239,31 @@ if __name__ == "__main__":
 #        for i in f_map:
 #            result = met.predict1(rebuild_features1(f_map[i]))
 #            results [i] = result
-        tx1 = time.time()
+        
         results = rule1(results,s.merged,files)
-#        checking(results,s.merged,files)
         
         
-#        print('checking cost ', time.time() - tx1)
+        csv_data = read_csv('dataset.csv')#读取csv文件
+        tx1 = time.time()
         
+        for pre_result in results:
+            try:
+                (xxx,yyy) = checking(csv_data,files,pre_result[0],pre_result[1],results[pre_result])
+                actual.append(yyy)
+                predict.append(xxx)
+                classfication_results.append([yyy,xxx])
+            except TypeError:
+                pass
+            
+        for pre_result in results:
+
+            o1,o2,o3 = checking1(csv_data,files,pre_result[0],pre_result[1],results[pre_result])
+            if not o1:
+                results [pre_result] = ('wrong, ''result is: ' , o2, ' but shuold be: ', o3)
+
+
+
+                 
         writer = xlwt.Workbook()
         table = writer.add_sheet('name')
         for i in results:
@@ -180,3 +273,14 @@ if __name__ == "__main__":
         
     time3 = time.time()
     print ('predicting cost ', time3 - time2, ' second', '\n')
+    
+    
+    confusion_matrix_plot_matplotlib(actual, predict)
+    df=pandas.DataFrame(classfication_results,columns=['actual','predict']) 
+    correct=df[df.actual==df.predict]
+    for i in ('1','2','4','5'):
+        R=sum(correct.predict==i)/sum(df.actual==i)
+        P=sum(correct.predict==i)/sum(df.predict==i)
+        F=R*P*2/(R+P)
+        print(i,':\n','R=',R,' P=',P,' F=',F)
+    

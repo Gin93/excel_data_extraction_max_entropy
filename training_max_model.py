@@ -30,7 +30,7 @@ class MaxEnt(object):
     
     def __init__(self):
     
-        self.max_iteration = 100
+        self.max_iteration = 150
         #引用外部w
         
 

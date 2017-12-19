@@ -44,24 +44,17 @@ data_set_path = 'C:/Users/cisdi/Desktop/data_for_max'
 time1 = time.time()
 
 features = []    
-for file,x1,y1,x2,y2,label in a:
-
-        
+for file,x1,y1,x2,y2,label in a:        
     file_name = os.path.join(data_set_path,file)
-
     try:
-        sheet = Sheet(file_name)
-
-    
+        sheet = Sheet(file_name) 
         for row in range(int(x1),int(x2)+1,1):
-            for col in range(int(y1),int(y2)+1,1):
-                
-                f = sheet.get_features((row-1,col-1)) #邻居范围在class里面定义
-        
+            for col in range(int(y1),int(y2)+1,1):                
+                f = sheet.get_features((row-1,col-1)) #邻居范围在class里面定义        
                 features.append( [label] + f )
     except FileNotFoundError:
         print(file_name)
-        #pass
+
         
 time2 = time.time()
 

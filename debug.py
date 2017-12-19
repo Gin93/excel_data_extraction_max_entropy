@@ -20,7 +20,7 @@ from get_features_for_sheet import *
 
 
      
-x = Sheet('C:/Users/cisdi/Desktop/test_for_max/8.xls')
+x = Sheet('C:/Users/cisdi/Desktop/test_for_max/多表.xls')
 
 
 #x.sheet.cell_value(0,24)
