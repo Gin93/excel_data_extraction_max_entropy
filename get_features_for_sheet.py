@@ -38,17 +38,46 @@ class Sheet:
         '''
         
     def selflens(self,data):
-        l = len(str(data))
-        if l <=3:
+#        l = len(str(data))
+#        if l <=3:
+#            return 'datashort'
+#        elif l <= 6:
+#            return 'datanormallen'
+#        elif l <= 9:
+#            return 'datalong'
+#        elif l <= 15:
+#            return 'dataverylong'
+#        else:
+#            return 'dataextremelylong'
+        
+        count_en = count_dg = count_sp = count_zh = count_pu = 0
+
+        for c in str(data):
+            if c in string.ascii_letters:
+                count_en += 1
+            elif c.isdigit():
+                count_dg += 1
+            elif c.isspace():
+                count_sp += 1
+            elif c.isalpha():
+                count_zh += 1
+            else:
+                count_pu += 1
+        l = count_en + count_zh + count_pu
+        if l < 1:
+            return 'dataveryshort'
+        elif l == 1:
             return 'datashort'
         elif l <= 6:
             return 'datanormallen'
-        elif l <= 9:
+        elif l <= 12:
             return 'datalong'
-        elif l <= 15:
+        elif l <= 20:
             return 'dataverylong'
         else:
-            return 'dataextremelylong'
+            return 'dataextremelylong'        
+    
+
     
     def valid(self,x,y,rows,cols): # 可以优化
         if x < 0 or y < 0 or x > rows-1 or y > cols-1: 

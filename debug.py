@@ -20,9 +20,18 @@ from get_features_for_sheet import *
 
 
      
-x = Sheet('C:/Users/cisdi/Desktop/test_for_max/多表.xls')
-
-
-#x.sheet.cell_value(0,24)
-#x.get_features((0,24))
+x = Sheet('C:/Users/cisdi/Desktop/test_for_max/12.xls')
+#
+#
+##x.sheet.cell_value(0,24)
+##x.get_features((0,24))
 asd = x.get_features_map()
+
+#
+#a = b = c = d = 1
+#if not a:
+#    print(1)
+#elif b:
+#    print(2)
+#elif c:
+#    print(3)

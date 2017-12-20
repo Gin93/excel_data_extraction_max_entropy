@@ -194,7 +194,7 @@ if __name__ == "__main__":
 
     # 选取 2/3 数据作为训练集， 1/3 数据作为测试集
     train_features, test_features, train_labels, test_labels = train_test_split(
-        imgs, labels, test_size=0.05, random_state=23323)
+        imgs, labels, test_size=0.001, random_state=23323)
 
     train_features = rebuild_features(train_features)
     test_features = rebuild_features(test_features)
