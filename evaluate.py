@@ -134,11 +134,17 @@ def rule1(d,merged,name):
                         d[r,c] = str(d[r,c]) + '-->' + '4'          
             
             elif x2-x1 == 1 and y2 - y1 >=5:                     # 横排  取位置中间的那个值
+                
                 if d[x1,y1] == d[x1,y2-1]:  # 对于长度大于5的如果首尾相同，则取这个值
                     xxx = d[x1,y1]
                     for r in range(x1,x2):
                         for c in range(y1,y2):
                             d[r,c] = str(d[r,c]) + '-->' + str(xxx)  
+                else:  #有待商议
+                    mid = a[int(len(a)/2)]
+                    for r in range(x1,x2):
+                        for c in range(y1,y2):
+                            d[r,c] = str(d[r,c]) + '-->' + str(mid)    
             elif x2-x1 == 1:                # 横排  取位置中间的那个值
                 mid = a[int(len(a)/2)]
                 for r in range(x1,x2):
