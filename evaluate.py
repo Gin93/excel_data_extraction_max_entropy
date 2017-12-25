@@ -33,6 +33,13 @@ import matplotlib.pyplot as plt
 import pandas
 
 
+'''
+用于测试调参评估训练好的最大熵模型
+输出分类结果,
+结合了csv文件，对分类错误的文件进行了分类
+'''
+
+
 
 
 def confusion_matrix_plot_matplotlib(y_truth, y_predict, cmap=plt.cm.Blues):

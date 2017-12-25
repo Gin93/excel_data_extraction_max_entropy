@@ -13,6 +13,13 @@ import csv
 import os
 import random
 
+'''
+定义了sheet类
+包含了用xlrd解析出的各种信息以及提取特征用的函数
+'''
+
+
+
 class Sheet:
     def __init__(self, file_path):
         

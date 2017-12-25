@@ -22,6 +22,13 @@ import os
 from training_max_model import MaxEnt
 import time
 
+'''
+读取保存的w[i]
+用最大熵模型预测某一个路径下的所有的文件并逐个输出出来
+同时定义了修正规则
+'''
+
+
 def dirlist(path, allfile):  
     '''
     dirlist("/home/yuan/testdir", [])   
