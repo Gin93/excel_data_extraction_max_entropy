@@ -349,12 +349,13 @@ if __name__ == "__main__":
             name = files.split('\\')[1]
             if not trained:
                 name = 'untrained' + name
-            writer.save('C:/Users/cisdi/Desktop/output_for_max/'+ name +'_results.xls')
+            writer.save('C:/Users/cisdi/Desktop/output_for_rf_ev/'+ name +'_results.xls')
         
 #    time3 = time.time()
 #    print ('predicting cost ', time3 - time2, ' second', '\n')
 #    
 #    
+    '''
     confusion_matrix_plot_matplotlib(actual, predict)
     df=pandas.DataFrame(classfication_results,columns=['actual','predict']) 
     correct=df[df.actual==df.predict]
@@ -363,5 +364,6 @@ if __name__ == "__main__":
         P=sum(correct.predict==i)/sum(df.predict==i)
         F=R*P*2/(R+P)
         print(i,':\n','R=',R,' P=',P,' F=',F)
+    '''
 
-    print('total cost: ', time.time()-time0 )
+    print('total cost: ', int (time.time()-time0) , 's' )

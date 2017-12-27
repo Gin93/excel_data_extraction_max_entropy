@@ -17,21 +17,25 @@ from collections import defaultdict
 from sklearn.cross_validation import train_test_split
 from sklearn.metrics import accuracy_score
 from get_features_for_sheet import *
-
+from rf_csv_class import *
 
      
-x = Sheet('C:/Users/cisdi/Desktop/test_for_max/12.xls')
+x = Sheet('C:/Users/cisdi/Desktop/test_for_max/27.xls')
 #
 #
 ##x.sheet.cell_value(0,24)
 ##x.get_features((0,24))
-asd = x.get_features_map()
+#asd = x.get_features_map()
+#asdd = x.get_features_map_dataframe()
 
-#
-#a = b = c = d = 1
-#if not a:
-#    print(1)
-#elif b:
-#    print(2)
-#elif c:
-#    print(3)
+aaa  = x.get_features_map_dataframe()
+
+xx = table_csv ('test1.csv' , 'test2.csv')
+
+asd = xx.get_features_map()
+
+asdf = xx.get_features_map_dataframe()
+
+
+a = xx.get_features((8,11))
+b = x.get_features((8,11))

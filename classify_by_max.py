@@ -22,6 +22,13 @@ import os
 from training_max_model import MaxEnt
 import time
 
+'''
+读取保存的w[i]
+用最大熵模型预测某一个路径下的所有的文件并逐个输出出来
+同时定义了修正规则
+'''
+
+
 def dirlist(path, allfile):  
     '''
     dirlist("/home/yuan/testdir", [])   
@@ -100,7 +107,7 @@ def rule1(d,merged,name):
                         d[r,c] = str(d[r,c]) + '-->' + '4'          
             
             elif x2-x1 == 1 and y2 - y1 >=5:                     # 横排  取位置中间的那个值
-                if d[x1,y1] = d[x1,y2-1]:
+                if d[x1,y1] == d[x1,y2-1]:
                     for r in range(x1,x2):
                         for c in range(y1,y2):
                             d[r,c] = str(d[r,c]) + '-->' + str(d[x1,y1])  
@@ -118,16 +125,66 @@ def rule1(d,merged,name):
                 #print(name,'::::::::',x1,x2,y1,y2)
 
     return d
-        
 
+def rule2(d,merged,name):
+    '''
+    input: 需要检测的预测结果dict , merged_info 
+    output: 一样格式的dict
+    '''
     
-        
-
-
-    
+    for x1,x2,y1,y2 in merged: #找所有的合并过的单元格 (48, 49, 34, 46)
+        ###操作
+        x1 = int(x1)
+        x2 = int(x2)
+        y1 = int(y1)
+        y2 = int(y2)
+        a = []
+        for r in range(x1,x2):
+            for c in range(y1,y2):
+                a.append(d[r,c])
+        ###解析
+        if len(set(a)) <= 1: #全部重复 pass
+            pass
+        else:
+            if int(y2) - int (y1) == 1 and (4 in a and 2 in a):#竖排  同时含有4与2
+                for r in range(x1,x2):
+                    for c in range(y1,y2):
+                        d[r,c] = 4
+                        
+            elif y2 - y1 == 1 and (1 in a and 2 in a): #竖排  同时含有1与2
+                for r in range(x1,x2):
+                    for c in range(y1,y2):
+                        d[r,c] = 2
+            elif y2 - y1 == 1 and (2 in a and 5 in a):    #竖排  同时含有5与2
+                for r in range(x1,x2):
+                    for c in range(y1,y2):
+                        d[r,c] = 5               
+      
+            elif y2 - y1 == 1 and (4 in a and 5 in a): #竖排  同时含有4与5
+                for r in range(x1,x2):
+                    for c in range(y1,y2):
+                        d[r,c] = 4         
             
+            elif x2-x1 == 1 and y2 - y1 >=5:                     # 横排  取位置中间的那个值
+                if d[x1,y1] == d[x1,y2-1]:
+                    for r in range(x1,x2):
+                        for c in range(y1,y2):
+                            d[r,c] = str(d[x1,y1])  
+            elif x2-x1 == 1:                     # 横排  取位置中间的那个值
+                mid = a[int(len(a)/2)]
+                for r in range(x1,x2):
+                    for c in range(y1,y2):
+                        d[r,c] = str(mid)  
             
-    
+            else:
+                for r in range(x1,x2):
+                    for c in range(y1,y2):
+                        d[r,c] = str(d[x1,y1])  
+            
+                #print(name,'::::::::',x1,x2,y1,y2)
+
+    return d       
+
 
 if __name__ == "__main__":
     
@@ -172,11 +229,8 @@ if __name__ == "__main__":
 #            result = met.predict1(rebuild_features1(f_map[i]))
 #            results [i] = result
         tx1 = time.time()
-        results = rule1(results,s.merged,files)
-#        checking(results,s.merged,files)
-        
-        
-#        print('checking cost ', time.time() - tx1)
+        results = rule2(results,s.merged,files)
+
         
         writer = xlwt.Workbook()
         table = writer.add_sheet('name')

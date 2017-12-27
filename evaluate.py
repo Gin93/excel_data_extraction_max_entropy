@@ -33,6 +33,13 @@ import matplotlib.pyplot as plt
 import pandas
 
 
+'''
+用于测试调参评估训练好的最大熵模型
+输出分类结果,
+结合了csv文件，对分类错误的文件进行了分类
+'''
+
+
 
 
 def confusion_matrix_plot_matplotlib(y_truth, y_predict, cmap=plt.cm.Blues):
@@ -197,9 +204,11 @@ def checking1 (csv_data,file_name,r,l,result):
                 if str(result)[-1] != '0':
                 
                     if str(result)[-1] != str(label):
+                        '''
                         print(file_name)
                         print((r,l))
                         print('result is' , result, 'but shuold be', label)
+                        '''
                         return (False,str(result),str(label))
     return(True,str(result),str(label))
         
@@ -233,6 +242,7 @@ if __name__ == "__main__":
     predict = []
     classfication_results = []
     all_files = dirlist('C:/Users/cisdi/Desktop/test_for_max',[])#获取文件夹下所有文件的路径
+    
     for files in all_files:
 
         s = Sheet(files)
@@ -272,15 +282,20 @@ if __name__ == "__main__":
             if not o1:
                 results [pre_result] = ('wrong, ''result is: ' , o2, ' but shuold be: ', o3)
 
-
-
-                 
-        writer = xlwt.Workbook()
-        table = writer.add_sheet('name')
+        ################只输出错误的
+        flag = False 
+        
         for i in results:
-            table.write(i[0],i[1],results[i])
-        name = files.split('\\')[1]
-        writer.save('C:/Users/cisdi/Desktop/output_for_max/'+ name +'_results.xls')
+            if 'wrong' in str(results[i]):
+                flag = True
+        
+        if flag:
+            writer = xlwt.Workbook()
+            table = writer.add_sheet('name')
+            for i in results:
+                table.write(i[0],i[1],results[i])
+            name = files.split('\\')[1]
+            writer.save('C:/Users/cisdi/Desktop/output_for_max/'+ name +'_results.xls')
         
     time3 = time.time()
     print ('predicting cost ', time3 - time2, ' second', '\n')

@@ -26,6 +26,16 @@ from sklearn.cross_validation import train_test_split
 from sklearn.metrics import accuracy_score
 from get_features_for_sheet import *
 
+
+'''
+定义了最大熵类(模型)
+读取制作好的features文件
+用最大熵模型训练
+将训练好的 w[i]输出保存起来
+
+'''
+
+
 class MaxEnt(object):
     
     def __init__(self):

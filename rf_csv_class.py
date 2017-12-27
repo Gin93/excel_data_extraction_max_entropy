@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Dec 13 16:43:04 2017
+Created on Tue Dec 26 17:26:25 2017
 
 @author: cisdi
 """
+
+'''
+训练rf模型
+用rf模型分类csv文件
+'''
 
 import xlrd
 
@@ -12,6 +17,7 @@ import pandas as pd
 import csv
 import os
 import random
+import numpy as np
 
 '''
 定义了sheet类
@@ -20,31 +26,42 @@ import random
 
 
 
-class Sheet:
-    def __init__(self, file_path):
+class table_csv:
+    def __init__(self, file_path, merged_path):
         
-        try:
-            self.sheet = xlrd.open_workbook(file_path, formatting_info=True).sheets()[0]
-        except:
-            self.sheet = xlrd.open_workbook(file_path).sheets()[0]
-            
-        self.rows = self.sheet.nrows
-        self.cols = self.sheet.ncols
-        self.merged = self.sheet.merged_cells
-        self.features = [] 
-#        self.neighbors = ['up','down','left','right','up2','down2','left2','right2','upl','upr','downl','downr']
-        self.neighbors = ['up','down','left','right','up2','down2'] #,'left2','right2','up3','down3']
-#        self.neighbors = ['up','down','left','right',]
+#        self.table_data  = np.loadtxt(file_path, dtype=np.str, delimiter=",")
+        df=pd.read_csv(file_path, header= None, encoding="utf-8")  #读取csv文件
+
+        self.table_data  = np.array(df) 
+        self.rows = self.table_data.shape[0]
+        self.cols = self.table_data.shape[1]
+        
+        self.neighbors = ['up','down','left','right','up2','down2']
         self.num_features = 41
-       
+        self.features = []
         
-    def filling(self):
-        '''
-        将合并过的单元格全部填充
-        可以假填充:
-            if merged:
-                data = cell_value(x1,y1)
-        '''
+        
+        df2=pd.read_csv(merged_path, header= None, encoding="utf-8")
+        m = np.array(df2) 
+        rr = m.shape[0]
+        self.merged = set()
+#        for i in range(self.rows):
+        for i in range(rr):   
+            a,b,c,d = m[i]   ######a,b,c,d都为闭区间且从零开始
+            self.merged.add((a,c+1,b,d+1)) # 转化为x1,x2,y1,y2 且x2,y2为闭区间
+        
+
+#        self.neighbors = ['up','down','left','right','up2','down2','left2','right2','upl','upr','downl','downr']
+
+#        self.neighbors = ['up','down','left','right',]
+    
+
+    def nan(self,data):
+        try:
+            return np.isnan(data)
+        except:
+            return False
+        
         
     def selflens(self,data):
 #        l = len(str(data))
@@ -58,6 +75,8 @@ class Sheet:
 #            return 'dataverylong'
 #        else:
 #            return 'dataextremelylong'
+        if self.nan(data):
+            return 'dataveryshort'
         
         count_en = count_dg = count_sp = count_zh = count_pu = 0
 
@@ -88,8 +107,8 @@ class Sheet:
     
 
     
-    def valid(self,x,y,rows,cols): # 可以优化
-        if x < 0 or y < 0 or x > rows-1 or y > cols-1: 
+    def valid(self,x,y): # 可以优化
+        if x < 0 or y < 0 or x > self.rows-1 or y > self.cols-1: 
             return False
         return True 
     
@@ -155,7 +174,7 @@ class Sheet:
                     else:
                         m_pos = 'middle'
 
-                return (True,self.sheet.cell_value(a,c),m_type,m_pos,(a,b,c,d))
+                return (True,self.table_data[a,c],m_type,m_pos,(a,b,c,d))
         return (False,'','','','') 
     
     
@@ -187,7 +206,7 @@ class Sheet:
             return False 
         
         
-        if data == '' or data == '\n':
+        if self.nan(data) or data == '\n':
             return 'null' 
         if isinstance(data,int): 
             return 'integer'
@@ -319,10 +338,10 @@ class Sheet:
              
             
             
-        if self.valid(r,c,rows,cols):
-            data = self.sheet.cell_value(r,c) # 当前检索到的邻居的数据
+        if self.valid(r,c):
+            data = self.table_data[r,c] # 当前检索到的邻居的数据
             f1 = 'valid'
-            center_data = self.sheet.cell_value(row-1,col-1) #中心的数据
+            center_data = self.table_data[row-1,col-1] #中心的数据
 
             boolean, merged_data,merged_type,merged_pos,cell_pos = self.ismerged(r,c)
             #merged_data 合并单元格的数据
@@ -331,7 +350,7 @@ class Sheet:
                 f3 = self.cell_type(merged_data)
                 f5 = merged_type
                 f6 = merged_pos
-                f4 = self.lens(center_data,merged_data)  # 对于合并过的单元格，是比较有数据的那个单元格的数据与中心数据
+#                f4 = self.lens(center_data,merged_data)  # 对于合并过的单元格，是比较有数据的那个单元格的数据与中心数据
                 f7 = self.selflens(merged_data)
                 f8 = merged_data
             else:  #单元格没有合并过
@@ -339,12 +358,14 @@ class Sheet:
                 f3 = self.cell_type(data)
                 f5 = 'singletype'
                 f6 = 'singlepos'
-                f4 = self.lens(center_data,data) #对于非合并的，操作自己与中心
+#                f4 = self.lens(center_data,data) #对于非合并的，操作自己与中心
                 f7 = self.selflens(data)
                 f8 = data
+
             
         else:
             f1 = f2 = f3 = f4 = f5 = f6 = f7 = f8 = 'invalid'
+
         
         ls = location
         return [ls + f1, ls + f2, ls + f3 ,ls + f5, ls + f6 ,ls + f7]   #删除了f4
@@ -383,10 +404,10 @@ class Sheet:
             f4 = merged_pos
             f5 = self.selflens(merged_data)
         else:
-            f1 = self.cell_type(self.sheet.cell_value(r-1,c-1))
+            f1 = self.cell_type(self.table_data[r-1,c-1])
             f2 = f3 = f4 = 'single'
-            f5 = self.selflens(self.sheet.cell_value(r-1,c-1))
-        f = f + [f1,f2,f3,f4,f5]
+            f5 = self.selflens(self.table_data[r-1,c-1])
+        f = f + [f1,f2,f3,f4,f5] 
         
         
         
@@ -429,10 +450,78 @@ class Sheet:
         df = pd.DataFrame(a, columns = header)
         return df
 
+'''
+xx =   table_csv ('test1.csv' , 'test2.csv')
+        
+a = xx.get_features_map()
+b = xx.get_features_map_dataframe()
+'''
+def rule1(d,merged):
+    '''
+    input: 需要检测的预测结果dict , merged_info 
+    output: 一样格式的dict
+    '''
+    
+    for x1,x2,y1,y2 in merged: #找所有的合并过的单元格 (48, 49, 34, 46)
+        ###操作
+        x1 = int(x1)
+        x2 = int(x2)
+        y1 = int(y1)
+        y2 = int(y2)
+        a = []
+        for r in range(x1,x2):
+            for c in range(y1,y2):
+                try:
+                    a.append(d[r,c])
+                except:
+                    a.append(0)
+        ###解析
+        if len(set(a)) <= 1: #全部重复 pass
+            pass
+        else:
+            if int(y2) - int (y1) == 1 and (4 in a and 2 in a):#竖排  同时含有4与2
+                for r in range(x1,x2):
+                    for c in range(y1,y2):
+                        d[r,c] = str(d[r,c]) + '-->' + '4'
+                        
+            elif y2 - y1 == 1 and (1 in a and 2 in a): #竖排  同时含有1与2
+                for r in range(x1,x2):
+                    for c in range(y1,y2):
+                        d[r,c] = str(d[r,c]) + '-->' + '2' 
+            elif y2 - y1 == 1 and (2 in a and 5 in a):    #竖排  同时含有5与2
+                for r in range(x1,x2):
+                    for c in range(y1,y2):
+                        d[r,c] = str(d[r,c]) + '-->' + '5'                
+      
+            elif y2 - y1 == 1 and (4 in a and 5 in a): #竖排  同时含有4与5
+                for r in range(x1,x2):
+                    for c in range(y1,y2):
+                        d[r,c] = str(d[r,c]) + '-->' + '4'          
+            
+            elif x2-x1 == 1 and y2 - y1 >=5:                     # 横排  取位置中间的那个值
+                
+                if d[x1,y1] == d[x1,y2-1]:  # 对于长度大于5的如果首尾相同，则取这个值
+                    xxx = d[x1,y1]
+                    for r in range(x1,x2):
+                        for c in range(y1,y2):
+                            d[r,c] = str(d[r,c]) + '-->' + str(xxx)  
+                else:  #有待商议
+                    mid = a[int(len(a)/2)]
+                    for r in range(x1,x2):
+                        for c in range(y1,y2):
+                            d[r,c] = str(d[r,c]) + '-->' + str(mid)    
+            elif x2-x1 == 1:                # 横排  取位置中间的那个值
+                mid = a[int(len(a)/2)]
+                for r in range(x1,x2):
+                    for c in range(y1,y2):
+                        d[r,c] = str(d[r,c]) + '-->' + str(mid)          
+            else:
+                for r in range(x1,x2):
+                    for c in range(y1,y2):
+                        d[r,c] = str(d[r,c]) + '-->' + str(d[x1,y1])  
+            
+                #print(name,'::::::::',x1,x2,y1,y2)
 
-        
-        
-        
-        
+    return d
         
     
