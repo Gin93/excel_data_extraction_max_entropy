@@ -19,23 +19,22 @@ import os
 from sklearn.ensemble import RandomForestClassifier
 
 from rf_csv_class import *
-
+from split_table_cells import split_table
 
 
 def classify_csv_by_rf(file1,file2):
     
     time1 = time.time()
     
-    raw_data = pd.read_csv('features.csv', header=0)
+    raw_data = pd.read_csv('features.csv', header=0) #读取理论上包含有所有特征取值的特征文件
+    
 
     f = raw_data.columns[1:]
     train_features = pd.get_dummies(raw_data[f][:])
     train_features.insert(0,'label',raw_data['label'])
     clf = RandomForestClassifier(n_jobs=2)
-    
     f = train_features.columns[1:] ######### all features name 
     clf.fit(train_features[f], train_features['label'])
-    
     time2 = time.time()
     print ('training cost', time2 - time1, ' second', '\n')
     
@@ -46,42 +45,68 @@ def classify_csv_by_rf(file1,file2):
     ##########################################################################
     
 
-    s = table_csv(file1,file2)
+    s = table_csv(file1,file2) #创建table_csv类型
     
-    f_map = s.get_features_map_dataframe()
-    
-    tem_df = pd.concat( [r10000,f_map] )
-    
+    f_map = s.get_features_map_dataframe() #获取特征 df格式
+    tem_df = pd.concat( [r10000,f_map] ) #与全特征连接，为了后面哑特征对齐做准备
     fff = tem_df.columns[:-2]
     tem_f = pd.get_dummies(tem_df[fff])
-    test_df = tem_f[10000:]
+    test_df = tem_f[10000:] # 去掉前面的特征，只保留需要分类的
     test_df.insert(0,'pos',f_map['pos'])
     
     
     
     results = {} #调用训练好的最大熵模型得出的每个单元格预测类型的结果 后期规则修正则基于此字典
-    predict_class = clf.predict(test_df[f])
-    
+    predict_class = clf.predict(test_df[f]) #获得分类结果，df类型
+
     for i in range (len(predict_class)):
         pos = test_df.loc[i]['pos']
-        results [pos] = int (predict_class[i])
-        
-        
+        results [pos] = int (predict_class[i]) #将分类结果转化为字典 方便输出
     
+        
+    ############################################
+    ####将字典转化为ndarray 方便切割表格
+    rows = s.rows
+    cols = s.cols
+    array_r = np.empty([rows,cols], dtype =  int)
+    
+    for i in range(rows):
+        for j in range(cols):
+            if (i,j) in results:
+                array_r[i,j] = results[(i,j)]
+            else:
+                array_r[i,j] = 0
+
 #    results = rule1(results,s.merged)        
+    
+    ########################################################################
+    #############将分类结果写入csv文件
+    
     writer = xlwt.Workbook()
     table = writer.add_sheet('name')
-    for i in results:
-        table.write(i[0],i[1],results[i])
 
+    for i in range(rows):
+        for j in range(cols):
+            if (i,j) in results:
+                table.write(i,j,results[(i,j)])
+            else:
+                table.write(i,j,0)
 
-    writer.save('C:/Users/cisdi/Desktop/output_for_rf/'+ file1 +'_results.xls')
+    name = os.path.basename(file1)
+    writer.save('C:/Users/cisdi/Desktop/output_csv/'+ name +'_results.xls')
     
-    return ''
+    files_path = split_table(array_r,rows,cols,file1)
+    
+    
+    
+    return array_r,files_path
         
 
+t1 = 'C:/Users/cisdi/Desktop/csvs/' + '97.csv'
+t2 = 'C:/Users/cisdi/Desktop/csvs/' + '97___1.csv'
+
 time0 = time.time()
-a = classify_csv_by_rf ('test1.csv' , 'test2.csv')
+a,b = classify_csv_by_rf (t1,t2)
 print('total cost: ', float (time.time()-time0) , 's' )
 
 
